@@ -16,11 +16,11 @@ def _open_app(app_key: str) -> str:
     path = APPS.get(app_key)
     if path and os.path.exists(path):
         subprocess.Popen([path])
-        return f"Opening {app_key}."
+        return f"Sure, I'm opening {app_key} for you."
     else:
         # Fallback: try via Windows start command
         subprocess.Popen(f'start {app_key}', shell=True)
-        return f"Trying to open {app_key}."
+        return f"Okay, I'm trying to open {app_key}."
 
 
 def _open_folder(entity: str | None) -> str:
@@ -29,10 +29,10 @@ def _open_folder(entity: str | None) -> str:
         for key, path in FOLDERS.items():
             if key in entity or entity in key:
                 subprocess.Popen(f'explorer "{path}"', shell=True)
-                return f"Opening {key} folder."
+                return f"Opening your {key} folder now."
     # Default: open file explorer
     subprocess.Popen("explorer", shell=True)
-    return "Opening file explorer."
+    return "Sure, opening file explorer."
 
 
 # ─── Intent → Action Map ──────────────────────────────────────────────────────
@@ -56,13 +56,13 @@ def execute(intent: str, entity: str | None, raw_text: str = "") -> str:
         edge   = APPS.get("edge",   "")
         if os.path.exists(chrome):
             subprocess.Popen([chrome])
-            return "Opening Google Chrome."
+            return "Google Chrome is opening."
         elif os.path.exists(edge):
             subprocess.Popen([edge])
-            return "Opening Microsoft Edge."
+            return "Microsoft Edge is opening."
         else:
             webbrowser.open("https://www.google.com")
-            return "Opening default browser."
+            return "I'll open your default browser for you."
 
     elif intent == "OPEN_NOTEPAD":
         return _open_app("notepad")
@@ -74,10 +74,10 @@ def execute(intent: str, entity: str | None, raw_text: str = "") -> str:
         path = APPS.get("vscode", "")
         if os.path.exists(path):
             subprocess.Popen([path])
-            return "Opening VS Code."
+            return "Opening VS Code. Just a moment."
         else:
             subprocess.Popen("code", shell=True)
-            return "Launching VS Code."
+            return "VS Code is starting up."
 
     elif intent == "OPEN_FOLDER":
         return _open_folder(entity)
@@ -88,8 +88,8 @@ def execute(intent: str, entity: str | None, raw_text: str = "") -> str:
             url = f"https://www.google.com/search?q={query}"
             import webbrowser
             webbrowser.open(url)
-            return f"Searching Google for {query}."
-        return "What would you like me to search for?"
+            return f"Certainly! Searching Google for {query}."
+        return "I'm ready. What would you like me to search for?"
 
     elif intent == "PLAY_MEDIA":
         query = entity or raw_text
@@ -97,8 +97,8 @@ def execute(intent: str, entity: str | None, raw_text: str = "") -> str:
             url = f"https://www.youtube.com/results?search_query={query}"
             import webbrowser
             webbrowser.open(url)
-            return f"Searching YouTube for {query}."
-        return "What should I play on YouTube?"
+            return f"Playing {query} on YouTube."
+        return "Of course. What should I play on YouTube?"
 
     elif intent == "SAVE_TEXT":
         # Handled by main.py which provides the content
@@ -127,7 +127,7 @@ def execute(intent: str, entity: str | None, raw_text: str = "") -> str:
         path = os.path.join(STORAGE_DIR, name)
         os.makedirs(path, exist_ok=True)
         subprocess.Popen(f'explorer "{path}"', shell=True)
-        return f"Folder '{name}' created inside your Nexus storage."
+        return f"Done! I've created the folder '{name}' in your Nexus storage."
 
     elif intent == "RUN_COMMAND":
         if entity:

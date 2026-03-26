@@ -73,7 +73,7 @@ def main():
     # Initialize storage
     sm = StorageManager()
 
-    speak("Nexus online. How can I help you?")
+    speak("Welcome! Nexus is online and ready for your commands.")
     print("\n✅  Nexus is running. Speak a command (or say 'bye Nexus' to stop).\n")
     print("─" * 50)
 
@@ -82,6 +82,7 @@ def main():
 
     while True:
         # ── Listen ──────────────────────────────────────────────────────────
+        speak("I'm listening.")
         raw_text = listen()
 
         if raw_text is None:
