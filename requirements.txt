@@ -1,5 +1,5 @@
 SpeechRecognition==3.10.4
-pyaudio==0.2.14
+# pyaudio==0.2.14 (Not yet available for Python 3.14; use keyboard mode)
 pyttsx3==2.90
 scikit-learn==1.4.2
 nltk==3.8.1
