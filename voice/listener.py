@@ -11,6 +11,8 @@ import os
 import io
 import wave
 import struct
+import subprocess
+import contextlib
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -61,6 +63,32 @@ def _pcm_to_wav_bytes(pcm_data: bytes) -> bytes:
     return buf
 
 
+@contextlib.contextmanager
+def _safe_subprocess_stderr():
+    """
+    Work around Windows `OSError: [WinError 50] The request is not supported`.
+
+    SpeechRecognition's `recognize_google` shells out to the bundled `flac`
+    encoder. When `stderr` is left to inherit, Python tries to DuplicateHandle
+    the parent's stderr — which fails in some Windows consoles/IDEs where that
+    handle isn't a real, duplicatable handle. Forcing `stderr=DEVNULL` gives the
+    child a fresh, inheritable handle instead, sidestepping the failure.
+    """
+    _orig_popen = subprocess.Popen
+
+    class _PatchedPopen(_orig_popen):
+        def __init__(self, *args, **kwargs):
+            if kwargs.get("stderr") is None:
+                kwargs["stderr"] = subprocess.DEVNULL
+            super().__init__(*args, **kwargs)
+
+    subprocess.Popen = _PatchedPopen
+    try:
+        yield
+    finally:
+        subprocess.Popen = _orig_popen
+
+
 def _listen_sounddevice(phrase_limit: int = 6) -> str | None:
     """Record mic → WAV → Google STT → text string."""
     import speech_recognition as sr
@@ -76,7 +104,8 @@ def _listen_sounddevice(phrase_limit: int = 6) -> str | None:
         audio = recognizer.record(source)
 
     try:
-        text = recognizer.recognize_google(audio)
+        with _safe_subprocess_stderr():
+            text = recognizer.recognize_google(audio)
         print(f"🗣️  You said: \"{text}\"")
         return text.lower().strip()
     except sr.UnknownValueError:
